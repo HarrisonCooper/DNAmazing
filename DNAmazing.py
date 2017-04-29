@@ -40,19 +40,15 @@ def find_mapped_reads(sam_file):
             yield read
 
 
-class CARDJSON(object):
+class AROJSON(object):
 
     def __init__(self, fn):
         self._fn = fn
         with open(fn) as f:
-            self._card = json.load(f)
-            self._card = {
-                    k: v for k, v in self._card.items()
-                    if isinstance(v, dict) and 'ARO_id' in v.keys()}
-        self._card_aro_idx = {
-            self._card[x]['ARO_accession']: self._card[x] for x in self._card}
+            self._aro = json.load(f)
+            self._aro = {x.pop('accession'): x for x in self._aro}
 
     def find_gene_for_alignment(self, read_aln):
         *_, aro_id, gname = read_aln.rname.split('|')
         _, aro_id = aro_id.split(':')
-        return gname, self._card_aro_idx[aro_id]
+        return gname, self._aro[aro_id]
