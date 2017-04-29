@@ -58,7 +58,7 @@ class Application(object):
             4.Option to record call for replay later. (Option 3)
             5.Repeat overview and menu list. (Option 4)"""
         
-        action='/name_of_applications/?'
+        action='/applications/?'
 
         url =  base_url + version + action
         response=client.create_application(name='Example App', type='voice', 
