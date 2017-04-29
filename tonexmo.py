@@ -45,34 +45,15 @@ class Application(object):
         #Description of what application does. E.g repeats options.
         
     def loadamazing():
-        """Runs DNAmazing.py and gets output into a nice format."""
+        """Runs DNAmazing.py and gets output into a nice format. Need to send 
+        this into update json."""
         pass
-        
-    def create(base_url, version):
-        """Creates application json file, with output from the DNAmazing program
-        in right position. Create new applications for:
-            1.Overview (number of matches, %chance of MRSA detection) and menu
-              list.
-            2.The antibiotics bacteria are resistant to. (Option 1)
-            3.Specify genes matched. (Option 2)
-            4.Option to record call for replay later. (Option 3)
-            5.Repeat overview and menu list. (Option 4)"""
-        
-        action='/applications/?'
 
-        url =  base_url + version + action
-        response=client.create_application(name='Example App', type='voice', 
-                                           answer_url=url)
-
-
-    
     def retrieve():
         #Could retrieve single application, or list of them using API? 
         #Not really sure what this does in the docs.....
         pass
     
-    
-
 
 class Event(object):
     #Creates events.
