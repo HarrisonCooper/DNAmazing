@@ -1,5 +1,8 @@
 from collections import namedtuple
 import json
+# pronto OBO format parser
+from pronto.parser import OboParser
+from pronto.parser.obo import Relationship
 
 
 SAMRecord = namedtuple(
@@ -42,13 +45,29 @@ def find_mapped_reads(sam_file):
 
 class AROJSON(object):
 
-    def __init__(self, fn):
-        self._fn = fn
-        with open(fn) as f:
+    def __init__(self, json_fn, obo_fn):
+        self._json_fn = json_fn
+        self._obo_fn = obo_fn
+        with open(json_fn) as f:
             self._aro = json.load(f)
             self._aro = {x.pop('accession'): x for x in self._aro}
+        with open(obo_fn, 'rb') as f:
+            _, self._obo, _ = OboParser().parse(f)
 
     def find_gene_for_alignment(self, read_aln):
-        *_, aro_id, gname = read_aln.rname.split('|')
-        _, aro_id = aro_id.split(':')
-        return gname, self._aro[aro_id]
+        *_, aro_id, _ = read_aln.rname.split('|')
+        return self.describe_aro_id(aro_id)
+
+    def describe_aro_id(self, aro_id):
+        return (self._aro[aro_id]['name'],
+                aro_id,
+                self._aro[aro_id]['description'])
+
+    def find_antibiotics_resisted(self, aro_id):
+        obo_data = self._obo[aro_id]
+        try:
+            resists = obo_data.relations[
+                    Relationship('confers_resistance_to_drug')]
+            return [self.describe_aro_id(aro_id) for aro_id in resists]
+        except KeyError:
+            return []
