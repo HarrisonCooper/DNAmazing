@@ -6,11 +6,13 @@ This is our Hack Med project, developed by: Gemma Rate, Matt Parker, Harry Coope
 * Aligned using BWA-MEM to [CARD database](https://card.mcmaster.ca/download)
 
 ## How to Install:
+```
 conda config --append channels bioconda
 conda create -n hackmed python=3.5 bwa click pandas
 source activate hackmed
 pip install nexmo
 pip install pronto
+```
 
 ## Requirements:
 * BWA MEM
