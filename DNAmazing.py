@@ -190,9 +190,9 @@ def alignment_to_card_data(sam_aln, aro):
     max_a = max(len(d[3]) for d in all_data)
     expanded_data = []
     for *gene, a_names, a_desc in all_data:
-        a_data = zip(fix_length(a_names, max_a), fix_length(a_desc, max_a))
-        expanded_data.append([*gene,
-                              *a_data])
+        a_data = it.chain(*zip(fix_length(a_names, max_a),
+                               fix_length(a_desc, max_a)))
+        expanded_data.append([*gene, *a_data])
     ab_r_cols = ['Antibiotic Resisted {}'.format(i + 1) for i in range(max_a)]
     ab_rd_cols = ['Antibiotic Resisted Description {}'.format(i + 1)
                   for i in range(max_a)]
