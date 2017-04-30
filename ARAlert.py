@@ -17,7 +17,15 @@ import DNAmazing as dna
               help='Nexmo number to send from')
 @click.option('--key', '-k', required=True, help='Nexmo API key')
 @click.option('--secret', '-s', required=True, help='Nexmo API secret')
-def ARAlert(fastq, aro_dir, output, to_number, from_number, key, secret):
+@click.option('--email-from', '-e', required=True,
+              help='email address to send from')
+@click.option('--email-password', '-p', required=True,
+              help='email address password')
+@click.option('--email-to', '-r', required=True,
+              help='email address to send to')
+def ARAlert(fastq, aro_dir, output,
+            to_number, from_number, key, secret,
+            email_from, email_password, email_to):
     card_seqs_fn, aro_json_fn, aro_obo_fn = dna.check_card(aro_dir)
     aro = dna.AROJSON(aro_json_fn, aro_obo_fn)
     sam = dna.SAMFile(dna.run_bwa(fastq, card_seqs_fn))
@@ -39,6 +47,8 @@ def ARAlert(fastq, aro_dir, output, to_number, from_number, key, secret):
         print('Message sent')
     else:
         print('Message send failed')
+    dna.send_email(antibiotic_groups, sample_name, output,
+                   email_from, email_to, email_password)
 
 if __name__ == '__main__':
     ARAlert()
