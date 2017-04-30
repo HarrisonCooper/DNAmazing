@@ -182,6 +182,9 @@ def alignment_to_card_data(sam_aln, aro):
                 if antibio_parent:
                     ap_names = [a[0] for a in antibio_parent]
                     antibio_parent_set.update(ap_names)
+        else:
+            a_names = []
+            a_desc = []
         all_data.append((g_name, g_description, read_count,
                          a_names, a_desc))
     max_a = max(len(d[3]) for d in all_data)
