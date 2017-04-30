@@ -21,6 +21,7 @@ pip install pronto
 * CARD database
 
 ## To Run:
+```
  -i, --fastq TEXT           ONT reads to map  [required]
  -j, --aro-dir TEXT         Path to directory containing aro.json, etc
                             [required]
@@ -33,3 +34,4 @@ pip install pronto
  -p, --email-password TEXT  email address password  [required]
  -r, --email-to TEXT        email address to send to  [required]
  --help                     Show this message and exit.
+```
