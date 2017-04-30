@@ -4,6 +4,12 @@ from collections import namedtuple, Counter
 import json
 import subprocess
 import signal
+import smtplib
+import mimetypes
+from email.mime.multipart import MIMEMultipart
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
 import pandas as pd
 # pronto OBO format parser
 from pronto.parser import OboParser
@@ -203,3 +209,50 @@ def alignment_to_card_data(sam_aln, aro):
                 *ab_cols]
     return (pd.DataFrame(expanded_data, columns=colnames),
             filter_parent_stopwords(antibio_parent_set))
+
+
+MESSAGE_BASE = '''
+Results from sample {sample_id}:
+Strain may resist {n} antibiotic groups, including:
+{antibiotics}
+
+Full Results are attached.
+'''
+
+
+NO_HITS_MESSAGE = '''
+No hits to AR genes found in {sample_id}
+'''
+
+
+def send_email(AB_resisted, sample_id, attach, email_from, email_to, password):
+    msg = MIMEMultipart()
+    msg['From'] = email_from
+    msg['To'] = email_to
+    msg['Subject'] = 'Results from {}'.format(sample_id)
+    if AB_resisted:
+        message = MESSAGE_BASE.format(sample_id=sample_id, n=len(AB_resisted),
+                                      antibiotics=',\n'.join(AB_resisted))
+    else:
+        message = NO_HITS_MESSAGE.format(sample_id=sample_id)
+    message_body = MIMEText(message, 'plain')
+    msg.attach(message_body)
+    if attach is not None:
+        ctype, encoding = mimetypes.guess_type(attach)
+        if ctype is None or encoding is not None:
+            ctype = "application/octet-stream"
+        maintype, subtype = ctype.split("/", 1)
+        with open(attach, "rb") as f:
+            attachment = MIMEBase(maintype, subtype)
+            attachment.set_payload(f.read())
+        encoders.encode_base64(attachment)
+        attachment.add_header("Content-Disposition",
+                              "attachment",
+                              filename=attach)
+        msg.attach(attachment)
+        
+    server = smtplib.SMTP("smtp.gmail.com:587")
+    server.starttls()
+    server.login(email_from, password)
+    server.sendmail(email_from, email_to, msg.as_string())
+    server.quit()
