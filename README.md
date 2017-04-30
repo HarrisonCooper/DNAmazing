@@ -1,7 +1,7 @@
 # DNAmazing
 This is our Hack Med project, developed by: Gemma Rate, Matt Parker, Harry Cooper and Amber Barton.
 
-## DNAmazing ARAlert
+## DNAmazing ARAlert
 ARAlert is a tool for diagnosing Antibiotic Resistance (AR) rapidly using nanopore long read technology and the Comprehensive Antibiotic Resistance Database (CARD).
 
 ONT reads are aligned to known AR genes in CARD using Burrows Wheeler Alignment (BWA) and the corresponding antibiotics are identified from the Antibiotic Resistance Ontology (ARO).
