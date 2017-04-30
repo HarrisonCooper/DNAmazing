@@ -1,8 +1,42 @@
+import os
 from collections import namedtuple, Counter
 import json
+import subprocess
+import signal
 # pronto OBO format parser
 from pronto.parser import OboParser
 from pronto.parser.obo import Relationship
+
+
+def run_bwa(ont_fastq, reference):
+    if not os.path.exists(reference + '.bwt'):
+        subprocess.call(['bwa', 'index', reference])
+
+    def default_sigpipe():
+        '''fixes some broken pipe behaviour'''
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+    s = subprocess.Popen(['bwa', 'mem', '-x', 'ont2d', reference, ont_fastq],
+                         stdout=subprocess.PIPE, preexec_fn=default_sigpipe)
+
+    for record in s.stdout:
+        yield record.decode().strip()
+    s.stdout.close()
+
+
+def check_card(path_to_card):
+    required = ['nucleotide_fasta_protein_homolog_model.fasta',
+                'aro.json',
+                'aro.obo']
+    paths_to_required = []
+    for r in required:
+        p = os.path.join(path_to_card, required)
+        if not os.path.exists(p):
+            raise IOError('Could not find {} in ARO directory {}'.format(
+                r, path_to_card))
+        else:
+            paths_to_required.append(p)
+    return paths_to_required
 
 
 SAMRecord = namedtuple(
@@ -12,18 +46,17 @@ SAMRecord = namedtuple(
 
 class SAMFile(object):
     '''
-    Wrapper for SAM file (just a tab delimited file really)
+    Wrapper for SAM iterator (just a tab delimited file really)
     '''
-    def __init__(self, fn):
-        self._fn = fn
-        self._file = open(fn)
+    def __init__(self, sam_iter):
+        self._iter = sam_iter
 
     def __iter__(self):
         return self
 
     def __next__(self):
         while True:
-            record = next(self._file)
+            record = next(self._iter)
             # skip header lines
             if not record.startswith('@'):
                 break
