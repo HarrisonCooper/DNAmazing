@@ -11,7 +11,7 @@ import mimetypes
 from email.mime.multipart import MIMEMultipart
 from email import encoders
 from email.message import Message
-from email.mime.audio import MIMEAudio
+#from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
@@ -25,8 +25,14 @@ password = "dnamazing_hackmed17"
 msg = MIMEMultipart()
 msg["From"] = emailfrom
 msg["To"] = emailto
-msg["Subject"] = "help I cannot send an attachment to save my life"
-msg.preamble = "help I cannot send an attachment to save my life"
+msg["Subject"] = "Subject: MRSA detection report. \n"
+
+#msg.preamble = "help I cannot send an attachment to save my life"
+
+fp = open('test.txt', 'r')
+msg.attach(MIMEText(fp.read()))
+fp.close()
+
 
 ctype, encoding = mimetypes.guess_type(fileToSend)
 if ctype is None or encoding is not None:
@@ -43,10 +49,10 @@ elif maintype == "image":
     fp = open(fileToSend, "rb")
     attachment = MIMEImage(fp.read(), _subtype=subtype)
     fp.close()
-elif maintype == "audio":
-    fp = open(fileToSend, "rb")
-    attachment = MIMEAudio(fp.read(), _subtype=subtype)
-    fp.close()
+#elif maintype == "audio":
+#    fp = open(fileToSend, "rb")
+#    attachment = MIMEAudio(fp.read(), _subtype=subtype)
+#    fp.close()
 else:
     fp = open(fileToSend, "rb")
     attachment = MIMEBase(maintype, subtype)
