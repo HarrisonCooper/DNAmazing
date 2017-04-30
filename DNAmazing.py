@@ -1,8 +1,10 @@
 import os
+import itertools as it
 from collections import namedtuple, Counter
 import json
 import subprocess
 import signal
+import pandas as pd
 # pronto OBO format parser
 from pronto.parser import OboParser
 from pronto.parser.obo import Relationship
@@ -148,6 +150,8 @@ def filter_parent_stopwords(antibiotics):
             filtered.append(a.replace(' antibiotic', ''))
     return set(filtered)
 
+def fix_length(lst, length):
+    return (lst + ['NA'] * length)[:length]
 
 def alignment_to_card_data(sam_aln, aro):
     '''
@@ -157,18 +161,40 @@ def alignment_to_card_data(sam_aln, aro):
     the broader groups of antibiotics these belong to.
     '''
     gene_counter = Counter()
-    antib_set = set()
-    antib_parent_set = set()
+    gene_descriptions = set()
+    antibio_parent_set = set()
+    all_data = []
     for record in find_mapped_reads(sam_aln):
-        gene_aro_data = aro.find_gene_for_alignment(
+        g_name, aro_id, g_description = aro.find_gene_for_alignment(
             record)
-        gene_counter[gene_aro_data[0]] += 1
-        antib_aro_data = aro.find_antibiotics_resisted(gene_aro_data[1])
-        if antib_aro_data:
-            antib_set.update([x[0] for x in antib_aro_data])
-            for antib in antib_aro_data:
-                antib_parent_data = aro.is_a(antib[1])
-                if antib_parent_data:
-                    antib_parent_set.update([a[0] for a in antib_parent_data])
-    return gene_counter, antib_set, filter_parent_stopwords(antib_parent_set)
-        
+        gene_counter[g_name] += 1
+        gene_descriptions.add((g_name, aro_id, g_description))
+    for g_name, aro_id, g_description in gene_descriptions:
+        read_count = gene_counter[g_name]
+        antibio_res = aro.find_antibiotics_resisted(aro_id)
+        if antibio_res:
+            a_names = [a[0] for a in antibio_res]
+            a_desc = [a[2] for a in antibio_res]
+            for antibio in antibio_res:
+                antibio_parent = aro.is_a(antibio[1])
+                if antibio_parent:
+                    ap_names = [a[0] for a in antibio_parent]
+                    antibio_parent_set.update(ap_names)
+        all_data.append((g_name, g_description, read_count,
+                         a_names, a_desc))
+    max_a = max(len(d[3]) for d in all_data)
+    expanded_data = []
+    for *gene, a_names, a_desc in all_data:
+        expanded_data.append([*gene,
+                              fix_length(a_names, max_a),
+                              fix_length(a_desc, max_a)])
+    ab_r_cols = ['Antibiotic Resisted {}'.format(i + 1) for i in range(max_a)]
+    ab_rd_cols = ['Antibiotic Resisted Description {}'.format(i + 1)
+                  for i in range(max_a)]
+    ab_cols = it.chain(*zip(ab_r_cols, ab_rd_cols))
+    colnames = ['Gene Name',
+                'Gene Description',
+                'Reads Supporting Gene',
+                *ab_cols]
+    return (pd.DataFrame(expanded_data, columns=colnames),
+            filter_parent_stopwords(antibio_parent_set))
