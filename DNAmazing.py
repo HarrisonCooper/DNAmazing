@@ -32,7 +32,7 @@ def check_card(path_to_card):
                 'aro.obo']
     paths_to_required = []
     for r in required:
-        p = os.path.join(path_to_card, required)
+        p = os.path.join(path_to_card, r)
         if not os.path.exists(p):
             raise IOError('Could not find {} in ARO directory {}'.format(
                 r, path_to_card))
@@ -150,8 +150,10 @@ def filter_parent_stopwords(antibiotics):
             filtered.append(a.replace(' antibiotic', ''))
     return set(filtered)
 
+
 def fix_length(lst, length):
     return (lst + ['NA'] * length)[:length]
+
 
 def alignment_to_card_data(sam_aln, aro):
     '''
